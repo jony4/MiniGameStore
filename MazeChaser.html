@@ -1,406 +1,524 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>迷宫追逐战 (策略版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            overflow: hidden; /* 防止滚动条出现 */
-        }
-        canvas {
-            background-color: #2d3748; /* 深灰色背景 */
-            display: block;
-            border-radius: 0.5rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-        .message-box {
-            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
-        }
+      body {
+        font-family: 'Inter', sans-serif;
+        overflow: hidden; /* 防止滚动条出现 */
+      }
+      canvas {
+        background-color: #2d3748; /* 深灰色背景 */
+        display: block;
+        border-radius: 0.5rem;
+        box-shadow:
+          0 10px 15px -3px rgba(0, 0, 0, 0.1),
+          0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      }
+      .message-box {
+        transition:
+          opacity 0.5s ease-in-out,
+          transform 0.5s ease-in-out;
+      }
     </style>
-</head>
-<body class="bg-gray-900 text-white flex flex-col items-center justify-center min-h-screen p-4">
-
-    <div class="w-full max-w-2xl mx-auto text-center mb-2">
-        <h1 class="text-4xl font-bold tracking-tight text-cyan-300">迷宫追逐战</h1>
-        <p class="mt-2 text-lg text-gray-400">集齐3颗水晶，找到出现的出口！</p>
+  </head>
+  <body
+    class="flex min-h-screen flex-col items-center justify-center bg-gray-900 p-4 text-white"
+  >
+    <div class="mx-auto mb-2 w-full max-w-2xl text-center">
+      <h1 class="text-4xl font-bold tracking-tight text-cyan-300">
+        迷宫追逐战
+      </h1>
+      <p class="mt-2 text-lg text-gray-400">集齐3颗水晶，找到出现的出口！</p>
     </div>
-    
-    <div class="flex items-center space-x-6 mb-3 text-xl font-mono">
-        <div id="timer" class="text-amber-400">时间: 0s</div>
-        <div id="crystalCounter" class="text-cyan-400">水晶: 0 / 3</div>
+
+    <div class="mb-3 flex items-center space-x-6 font-mono text-xl">
+      <div id="timer" class="text-amber-400">时间: 0s</div>
+      <div id="crystalCounter" class="text-cyan-400">水晶: 0 / 3</div>
     </div>
 
     <canvas id="mazeCanvas"></canvas>
 
     <!-- 开始游戏界面 -->
-    <div id="startScreen" class="message-box fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center">
-        <div class="text-center">
-            <h2 class="text-5xl font-bold text-white mb-4">准备好了吗？</h2>
-            <p class="text-gray-300 text-xl mb-8">用方向键移动 🐰，躲开 👻</p>
-            <button id="startButton" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 px-8 rounded-lg text-2xl transition duration-300 transform hover:scale-105">
-                开始游戏
-            </button>
-        </div>
+    <div
+      id="startScreen"
+      class="message-box fixed inset-0 flex items-center justify-center bg-black bg-opacity-80"
+    >
+      <div class="text-center">
+        <h2 class="mb-4 text-5xl font-bold text-white">准备好了吗？</h2>
+        <p class="mb-8 text-xl text-gray-300">用方向键移动 🐰，躲开 👻</p>
+        <button
+          id="startButton"
+          class="transform rounded-lg bg-cyan-500 px-8 py-3 text-2xl font-bold text-white transition duration-300 hover:scale-105 hover:bg-cyan-600"
+        >
+          开始游戏
+        </button>
+      </div>
     </div>
 
     <!-- 获胜消息提示框 -->
-    <div id="winMessage" class="message-box fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center opacity-0 pointer-events-none transform scale-95">
-        <div class="bg-gray-800 rounded-lg shadow-2xl p-8 text-center border border-green-500">
-            <h2 class="text-3xl font-bold text-green-400 mb-4">你成功了！</h2>
-            <p class="text-gray-300 mb-6">太棒了，你成功甩掉了小幽灵！</p>
-            <button id="restartButtonWin" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300">
-                再玩一次
-            </button>
-        </div>
+    <div
+      id="winMessage"
+      class="message-box pointer-events-none fixed inset-0 flex scale-95 transform items-center justify-center bg-black bg-opacity-75 opacity-0"
+    >
+      <div
+        class="rounded-lg border border-green-500 bg-gray-800 p-8 text-center shadow-2xl"
+      >
+        <h2 class="mb-4 text-3xl font-bold text-green-400">你成功了！</h2>
+        <p class="mb-6 text-gray-300">太棒了，你成功甩掉了小幽灵！</p>
+        <button
+          id="restartButtonWin"
+          class="rounded-lg bg-cyan-500 px-6 py-2 font-bold text-white transition duration-300 hover:bg-cyan-600"
+        >
+          再玩一次
+        </button>
+      </div>
     </div>
-    
+
     <!-- 游戏结束消息提示框 -->
-    <div id="gameOverMessage" class="message-box fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center opacity-0 pointer-events-none transform scale-95">
-        <div class="bg-gray-800 rounded-lg shadow-2xl p-8 text-center border border-red-500">
-            <h2 class="text-3xl font-bold text-red-500 mb-4">游戏结束！</h2>
-            <p class="text-gray-300 mb-6">你被抓住了！下次好运！</p>
-            <button id="restartButtonGameOver" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300">
-                再试一次
-            </button>
-        </div>
+    <div
+      id="gameOverMessage"
+      class="message-box pointer-events-none fixed inset-0 flex scale-95 transform items-center justify-center bg-black bg-opacity-75 opacity-0"
+    >
+      <div
+        class="rounded-lg border border-red-500 bg-gray-800 p-8 text-center shadow-2xl"
+      >
+        <h2 class="mb-4 text-3xl font-bold text-red-500">游戏结束！</h2>
+        <p class="mb-6 text-gray-300">你被抓住了！下次好运！</p>
+        <button
+          id="restartButtonGameOver"
+          class="rounded-lg bg-red-500 px-6 py-2 font-bold text-white transition duration-300 hover:bg-red-600"
+        >
+          再试一次
+        </button>
+      </div>
     </div>
 
     <script>
-        // --- 游戏设置 ---
-        const canvas = document.getElementById('mazeCanvas');
-        const ctx = canvas.getContext('2d');
-        const startScreen = document.getElementById('startScreen');
-        const startButton = document.getElementById('startButton');
-        const winMessage = document.getElementById('winMessage');
-        const gameOverMessage = document.getElementById('gameOverMessage');
-        const restartButtonWin = document.getElementById('restartButtonWin');
-        const restartButtonGameOver = document.getElementById('restartButtonGameOver');
-        const timerDisplay = document.getElementById('timer');
-        const crystalCounterDisplay = document.getElementById('crystalCounter');
+      // --- 游戏设置 ---
+      const canvas = document.getElementById('mazeCanvas');
+      const ctx = canvas.getContext('2d');
+      const startScreen = document.getElementById('startScreen');
+      const startButton = document.getElementById('startButton');
+      const winMessage = document.getElementById('winMessage');
+      const gameOverMessage = document.getElementById('gameOverMessage');
+      const restartButtonWin = document.getElementById('restartButtonWin');
+      const restartButtonGameOver = document.getElementById(
+        'restartButtonGameOver'
+      );
+      const timerDisplay = document.getElementById('timer');
+      const crystalCounterDisplay = document.getElementById('crystalCounter');
 
-        let maze, player, exit, monster, crystals;
-        let mazeSize, tileSize;
-        const totalCrystals = 3;
-        let collectedCrystals = 0;
-        let gameStarted = false;
-        let gameOver = false;
-        let timerInterval, monsterMoveInterval, startTime;
-        let animationFrameId;
+      let maze, player, exit, monster, crystals;
+      let mazeSize, tileSize;
+      const totalCrystals = 3;
+      let collectedCrystals = 0;
+      let gameStarted = false;
+      let gameOver = false;
+      let timerInterval, monsterMoveInterval, startTime;
+      let animationFrameId;
 
-        // --- 核心功能 ---
+      // --- 核心功能 ---
 
-        function init() {
-            // 停止所有正在运行的游戏循环和计时器
-            if (animationFrameId) cancelAnimationFrame(animationFrameId);
-            clearInterval(timerInterval);
-            clearInterval(monsterMoveInterval);
+      function init() {
+        // 停止所有正在运行的游戏循环和计时器
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        clearInterval(timerInterval);
+        clearInterval(monsterMoveInterval);
 
-            // 重置游戏状态
-            gameStarted = false;
-            gameOver = false;
-            collectedCrystals = 0;
-            
-            mazeSize = 19;
-            
-            const screenWidth = window.innerWidth * 0.9;
-            const screenHeight = window.innerHeight * 0.7;
-            
-            tileSize = Math.floor(Math.min(screenWidth / mazeSize, screenHeight / mazeSize));
-            if (tileSize < 16) tileSize = 16;
+        // 重置游戏状态
+        gameStarted = false;
+        gameOver = false;
+        collectedCrystals = 0;
 
-            canvas.width = mazeSize * tileSize;
-            canvas.height = mazeSize * tileSize;
+        mazeSize = 19;
 
-            maze = generateLoopyMaze(mazeSize, mazeSize, 0.15);
+        const screenWidth = window.innerWidth * 0.9;
+        const screenHeight = window.innerHeight * 0.7;
 
-            player = { x: 1, y: 1, jumpOffset: 0 };
-            monster = { x: mazeSize - 2, y: 1 };
-            exit = null;
-            
-            placeCrystals();
-            updateCrystalCounter();
-            timerDisplay.textContent = `时间: 0s`;
+        tileSize = Math.floor(
+          Math.min(screenWidth / mazeSize, screenHeight / mazeSize)
+        );
+        if (tileSize < 16) tileSize = 16;
 
-            // 隐藏消息框，显示开始屏幕
-            winMessage.classList.add('opacity-0', 'pointer-events-none', 'transform', 'scale-95');
-            gameOverMessage.classList.add('opacity-0', 'pointer-events-none', 'transform', 'scale-95');
-            startScreen.classList.remove('opacity-0', 'pointer-events-none');
-            
-            draw(); // 绘制初始的游戏画面
-        }
-        
-        function startGame() {
-            if (gameStarted) return;
-            gameStarted = true;
-            gameOver = false;
+        canvas.width = mazeSize * tileSize;
+        canvas.height = mazeSize * tileSize;
 
-            // 隐藏开始屏幕
-            startScreen.classList.add('opacity-0', 'pointer-events-none');
+        maze = generateLoopyMaze(mazeSize, mazeSize, 0.15);
 
-            // 启动计时器和怪物
-            startTimer();
-            startMonster();
-            gameLoop();
-        }
+        player = { x: 1, y: 1, jumpOffset: 0 };
+        monster = { x: mazeSize - 2, y: 1 };
+        exit = null;
 
-        function generateLoopyMaze(width, height, loopFactor = 0.1) {
-            let grid = Array.from({ length: height }, () => Array(width).fill(1));
-            const stack = [];
-            grid[1][1] = 0;
-            stack.push([1, 1]);
+        placeCrystals();
+        updateCrystalCounter();
+        timerDisplay.textContent = `时间: 0s`;
 
-            while (stack.length > 0) {
-                const [cx, cy] = stack[stack.length - 1];
-                const directions = [[0, -2], [2, 0], [0, 2], [-2, 0]];
-                directions.sort(() => Math.random() - 0.5);
-                const neighbors = [];
+        // 隐藏消息框，显示开始屏幕
+        winMessage.classList.add(
+          'opacity-0',
+          'pointer-events-none',
+          'transform',
+          'scale-95'
+        );
+        gameOverMessage.classList.add(
+          'opacity-0',
+          'pointer-events-none',
+          'transform',
+          'scale-95'
+        );
+        startScreen.classList.remove('opacity-0', 'pointer-events-none');
 
-                for (const [dx, dy] of directions) {
-                    const nx = cx + dx, ny = cy + dy;
-                    if (nx > 0 && nx < width - 1 && ny > 0 && ny < height - 1 && grid[ny][nx] === 1) {
-                        neighbors.push([nx, ny]);
-                    }
-                }
+        draw(); // 绘制初始的游戏画面
+      }
 
-                if (neighbors.length > 0) {
-                    const [nx, ny] = neighbors[0];
-                    grid[ny][nx] = 0;
-                    grid[cy + (ny - cy) / 2][cx + (nx - cx) / 2] = 0;
-                    stack.push([nx, ny]);
-                } else {
-                    stack.pop();
-                }
+      function startGame() {
+        if (gameStarted) return;
+        gameStarted = true;
+        gameOver = false;
+
+        // 隐藏开始屏幕
+        startScreen.classList.add('opacity-0', 'pointer-events-none');
+
+        // 启动计时器和怪物
+        startTimer();
+        startMonster();
+        gameLoop();
+      }
+
+      function generateLoopyMaze(width, height, loopFactor = 0.1) {
+        let grid = Array.from({ length: height }, () => Array(width).fill(1));
+        const stack = [];
+        grid[1][1] = 0;
+        stack.push([1, 1]);
+
+        while (stack.length > 0) {
+          const [cx, cy] = stack[stack.length - 1];
+          const directions = [
+            [0, -2],
+            [2, 0],
+            [0, 2],
+            [-2, 0],
+          ];
+          directions.sort(() => Math.random() - 0.5);
+          const neighbors = [];
+
+          for (const [dx, dy] of directions) {
+            const nx = cx + dx,
+              ny = cy + dy;
+            if (
+              nx > 0 &&
+              nx < width - 1 &&
+              ny > 0 &&
+              ny < height - 1 &&
+              grid[ny][nx] === 1
+            ) {
+              neighbors.push([nx, ny]);
             }
-            
-            for (let y = 1; y < height - 1; y++) {
-                for (let x = 1; x < width - 1; x++) {
-                    if (grid[y][x] === 1) {
-                         if (Math.random() < loopFactor) {
-                            grid[y][x] = 0;
-                        }
-                    }
-                }
-            }
-            return grid;
-        }
-        
-        function placeCrystals() {
-            crystals = [];
-            const emptyCells = [];
-            for (let y = 1; y < mazeSize - 1; y++) {
-                for (let x = 1; x < mazeSize - 1; x++) {
-                    if (maze[y][x] === 0) {
-                        emptyCells.push({x, y});
-                    }
-                }
-            }
+          }
 
-            for (let i = 0; i < totalCrystals; i++) {
-                if(emptyCells.length === 0) break;
-                const randomIndex = Math.floor(Math.random() * emptyCells.length);
-                const cell = emptyCells.splice(randomIndex, 1)[0];
-                if ((cell.x !== player.x || cell.y !== player.y) && (cell.x !== monster.x || cell.y !== monster.y)) {
-                    crystals.push(cell);
-                } else {
-                    i--;
-                }
-            }
+          if (neighbors.length > 0) {
+            const [nx, ny] = neighbors[0];
+            grid[ny][nx] = 0;
+            grid[cy + (ny - cy) / 2][cx + (nx - cx) / 2] = 0;
+            stack.push([nx, ny]);
+          } else {
+            stack.pop();
+          }
         }
 
-        function spawnExit() {
-            const emptyCells = [];
-            for (let y = 1; y < mazeSize - 1; y++) {
-                for (let x = 1; x < mazeSize - 1; x++) {
-                     if (maze[y][x] === 0 && (x !== player.x || y !== player.y)) {
-                        emptyCells.push({x, y});
-                    }
-                }
+        for (let y = 1; y < height - 1; y++) {
+          for (let x = 1; x < width - 1; x++) {
+            if (grid[y][x] === 1) {
+              if (Math.random() < loopFactor) {
+                grid[y][x] = 0;
+              }
             }
-            if(emptyCells.length > 0) {
-                exit = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-            } else {
-                exit = {x: mazeSize - 2, y: mazeSize - 2};
+          }
+        }
+        return grid;
+      }
+
+      function placeCrystals() {
+        crystals = [];
+        const emptyCells = [];
+        for (let y = 1; y < mazeSize - 1; y++) {
+          for (let x = 1; x < mazeSize - 1; x++) {
+            if (maze[y][x] === 0) {
+              emptyCells.push({ x, y });
             }
-        }
-        
-        function gameLoop() {
-            if (gameOver) return;
-            draw();
-            if (player.jumpOffset > 0) player.jumpOffset -= 1.5;
-            if (player.jumpOffset < 0) player.jumpOffset = 0;
-            animationFrameId = requestAnimationFrame(gameLoop);
+          }
         }
 
-        function draw() {
-            ctx.fillStyle = '#2d3748';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        for (let i = 0; i < totalCrystals; i++) {
+          if (emptyCells.length === 0) break;
+          const randomIndex = Math.floor(Math.random() * emptyCells.length);
+          const cell = emptyCells.splice(randomIndex, 1)[0];
+          if (
+            (cell.x !== player.x || cell.y !== player.y) &&
+            (cell.x !== monster.x || cell.y !== monster.y)
+          ) {
+            crystals.push(cell);
+          } else {
+            i--;
+          }
+        }
+      }
 
-            ctx.fillStyle = '#6b46c1';
-            for (let y = 0; y < mazeSize; y++) {
-                for (let x = 0; x < mazeSize; x++) {
-                    if (maze[y][x] === 1) {
-                        ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
-                    }
-                }
+      function spawnExit() {
+        const emptyCells = [];
+        for (let y = 1; y < mazeSize - 1; y++) {
+          for (let x = 1; x < mazeSize - 1; x++) {
+            if (maze[y][x] === 0 && (x !== player.x || y !== player.y)) {
+              emptyCells.push({ x, y });
             }
-            
-            ctx.font = `${tileSize * 0.8}px sans-serif`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
+          }
+        }
+        if (emptyCells.length > 0) {
+          exit = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+        } else {
+          exit = { x: mazeSize - 2, y: mazeSize - 2 };
+        }
+      }
 
-            crystals.forEach(crystal => {
-                ctx.fillText('💎', crystal.x * tileSize + tileSize / 2, crystal.y * tileSize + tileSize / 2);
-            });
-            
-            if (exit) {
-                ctx.fillText('🌟', exit.x * tileSize + tileSize / 2, exit.y * tileSize + tileSize / 2);
+      function gameLoop() {
+        if (gameOver) return;
+        draw();
+        if (player.jumpOffset > 0) player.jumpOffset -= 1.5;
+        if (player.jumpOffset < 0) player.jumpOffset = 0;
+        animationFrameId = requestAnimationFrame(gameLoop);
+      }
+
+      function draw() {
+        ctx.fillStyle = '#2d3748';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = '#6b46c1';
+        for (let y = 0; y < mazeSize; y++) {
+          for (let x = 0; x < mazeSize; x++) {
+            if (maze[y][x] === 1) {
+              ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
             }
-            
-            // 使用新的幽灵图标
-            ctx.fillText('👻', monster.x * tileSize + tileSize / 2, monster.y * tileSize + tileSize / 2);
-            
-            const playerYPos = (player.y * tileSize + tileSize / 2) - player.jumpOffset;
-            ctx.fillText('🐰', player.x * tileSize + tileSize / 2, playerYPos);
+          }
         }
-        
-        function findPathBFS(startNode, endNode) {
-            const queue = [[startNode.x, startNode.y]];
-            const visited = new Set([`${startNode.x},${startNode.y}`]);
-            const parentMap = new Map();
 
-            while (queue.length > 0) {
-                const [cx, cy] = queue.shift();
-                if (cx === endNode.x && cy === endNode.y) {
-                    const path = [];
-                    let current = endNode;
-                    while (current) {
-                        path.unshift(current);
-                        current = parentMap.get(`${current.x},${current.y}`);
-                    }
-                    return path;
-                }
-                const directions = [[0, 1], [0, -1], [1, 0], [-1, 0]];
-                for (const [dx, dy] of directions) {
-                    const nx = cx + dx, ny = cy + dy;
-                    const key = `${nx},${ny}`;
-                    if (nx >= 0 && nx < mazeSize && ny >= 0 && ny < mazeSize && maze[ny][nx] === 0 && !visited.has(key)) {
-                        visited.add(key);
-                        parentMap.set(key, { x: cx, y: cy });
-                        queue.push([nx, ny]);
-                    }
-                }
+        ctx.font = `${tileSize * 0.8}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        crystals.forEach((crystal) => {
+          ctx.fillText(
+            '💎',
+            crystal.x * tileSize + tileSize / 2,
+            crystal.y * tileSize + tileSize / 2
+          );
+        });
+
+        if (exit) {
+          ctx.fillText(
+            '🌟',
+            exit.x * tileSize + tileSize / 2,
+            exit.y * tileSize + tileSize / 2
+          );
+        }
+
+        // 使用新的幽灵图标
+        ctx.fillText(
+          '👻',
+          monster.x * tileSize + tileSize / 2,
+          monster.y * tileSize + tileSize / 2
+        );
+
+        const playerYPos =
+          player.y * tileSize + tileSize / 2 - player.jumpOffset;
+        ctx.fillText('🐰', player.x * tileSize + tileSize / 2, playerYPos);
+      }
+
+      function findPathBFS(startNode, endNode) {
+        const queue = [[startNode.x, startNode.y]];
+        const visited = new Set([`${startNode.x},${startNode.y}`]);
+        const parentMap = new Map();
+
+        while (queue.length > 0) {
+          const [cx, cy] = queue.shift();
+          if (cx === endNode.x && cy === endNode.y) {
+            const path = [];
+            let current = endNode;
+            while (current) {
+              path.unshift(current);
+              current = parentMap.get(`${current.x},${current.y}`);
             }
-            return null;
-        }
-
-        function moveMonster() {
-            const path = findPathBFS({ x: monster.x, y: monster.y }, { x: player.x, y: player.y });
-            if (path && path.length > 1) {
-                monster.x = path[1].x;
-                monster.y = path[1].y;
+            return path;
+          }
+          const directions = [
+            [0, 1],
+            [0, -1],
+            [1, 0],
+            [-1, 0],
+          ];
+          for (const [dx, dy] of directions) {
+            const nx = cx + dx,
+              ny = cy + dy;
+            const key = `${nx},${ny}`;
+            if (
+              nx >= 0 &&
+              nx < mazeSize &&
+              ny >= 0 &&
+              ny < mazeSize &&
+              maze[ny][nx] === 0 &&
+              !visited.has(key)
+            ) {
+              visited.add(key);
+              parentMap.set(key, { x: cx, y: cy });
+              queue.push([nx, ny]);
             }
+          }
         }
-        
-        function startTimer() {
-            startTime = Date.now();
-            clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                if (!gameOver) {
-                    const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
-                    timerDisplay.textContent = `时间: ${elapsedTime}s`;
-                }
-            }, 1000);
-        }
-        
-        function startMonster() {
-            clearInterval(monsterMoveInterval);
-            monsterMoveInterval = setInterval(() => {
-                if (!gameOver) {
-                    moveMonster();
-                    checkGameOver();
-                }
-            }, 550);
-        }
+        return null;
+      }
 
-        function handleKeyPress(e) {
-            if (!gameStarted || gameOver) return;
-            
-            let dx = 0, dy = 0;
-            switch (e.key) {
-                case 'ArrowUp': dy = -1; break;
-                case 'ArrowDown': dy = 1; break;
-                case 'ArrowLeft': dx = -1; break;
-                case 'ArrowRight': dx = 1; break;
-                default: return;
-            }
-            e.preventDefault();
-
-            const nextX = player.x + dx;
-            const nextY = player.y + dy;
-
-            if (nextX >= 0 && nextX < mazeSize && nextY >= 0 && nextY < mazeSize && maze[nextY][nextX] === 0) {
-                player.x = nextX;
-                player.y = nextY;
-                player.jumpOffset = tileSize / 3;
-                checkCrystalCollection();
-                checkWinCondition();
-                checkGameOver();
-            }
+      function moveMonster() {
+        const path = findPathBFS(
+          { x: monster.x, y: monster.y },
+          { x: player.x, y: player.y }
+        );
+        if (path && path.length > 1) {
+          monster.x = path[1].x;
+          monster.y = path[1].y;
         }
-        
-        function updateCrystalCounter() {
-            crystalCounterDisplay.textContent = `水晶: ${collectedCrystals} / ${totalCrystals}`;
-        }
+      }
 
-        function checkCrystalCollection() {
-            const crystalIndex = crystals.findIndex(c => c.x === player.x && c.y === player.y);
-            if (crystalIndex > -1) {
-                crystals.splice(crystalIndex, 1);
-                collectedCrystals++;
-                updateCrystalCounter();
-                if (collectedCrystals === totalCrystals) {
-                    spawnExit();
-                }
-            }
-        }
+      function startTimer() {
+        startTime = Date.now();
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+          if (!gameOver) {
+            const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+            timerDisplay.textContent = `时间: ${elapsedTime}s`;
+          }
+        }, 1000);
+      }
 
-        function stopGame(isWin) {
-            if(gameOver) return;
-            gameOver = true;
-            clearInterval(timerInterval);
-            clearInterval(monsterMoveInterval);
-            if (isWin) {
-                winMessage.classList.remove('opacity-0', 'pointer-events-none', 'transform', 'scale-95');
-            } else {
-                gameOverMessage.classList.remove('opacity-0', 'pointer-events-none', 'transform', 'scale-95');
-            }
-        }
+      function startMonster() {
+        clearInterval(monsterMoveInterval);
+        monsterMoveInterval = setInterval(() => {
+          if (!gameOver) {
+            moveMonster();
+            checkGameOver();
+          }
+        }, 550);
+      }
 
-        function checkWinCondition() {
-            if (exit && player.x === exit.x && player.y === exit.y) {
-                stopGame(true);
-            }
-        }
-        
-        function checkGameOver() {
-            if (player.x === monster.x && player.y === monster.y) {
-                stopGame(false);
-            }
-        }
+      function handleKeyPress(e) {
+        if (!gameStarted || gameOver) return;
 
-        // --- 事件监听 ---
-        startButton.addEventListener('click', startGame);
-        window.addEventListener('keydown', handleKeyPress);
-        restartButtonWin.addEventListener('click', init);
-        restartButtonGameOver.addEventListener('click', init);
-        window.addEventListener('resize', init);
+        let dx = 0,
+          dy = 0;
+        switch (e.key) {
+          case 'ArrowUp':
+            dy = -1;
+            break;
+          case 'ArrowDown':
+            dy = 1;
+            break;
+          case 'ArrowLeft':
+            dx = -1;
+            break;
+          case 'ArrowRight':
+            dx = 1;
+            break;
+          default:
+            return;
+        }
+        e.preventDefault();
 
-        // --- 游戏启动 ---
-        init();
+        const nextX = player.x + dx;
+        const nextY = player.y + dy;
+
+        if (
+          nextX >= 0 &&
+          nextX < mazeSize &&
+          nextY >= 0 &&
+          nextY < mazeSize &&
+          maze[nextY][nextX] === 0
+        ) {
+          player.x = nextX;
+          player.y = nextY;
+          player.jumpOffset = tileSize / 3;
+          checkCrystalCollection();
+          checkWinCondition();
+          checkGameOver();
+        }
+      }
+
+      function updateCrystalCounter() {
+        crystalCounterDisplay.textContent = `水晶: ${collectedCrystals} / ${totalCrystals}`;
+      }
+
+      function checkCrystalCollection() {
+        const crystalIndex = crystals.findIndex(
+          (c) => c.x === player.x && c.y === player.y
+        );
+        if (crystalIndex > -1) {
+          crystals.splice(crystalIndex, 1);
+          collectedCrystals++;
+          updateCrystalCounter();
+          if (collectedCrystals === totalCrystals) {
+            spawnExit();
+          }
+        }
+      }
+
+      function stopGame(isWin) {
+        if (gameOver) return;
+        gameOver = true;
+        clearInterval(timerInterval);
+        clearInterval(monsterMoveInterval);
+        if (isWin) {
+          winMessage.classList.remove(
+            'opacity-0',
+            'pointer-events-none',
+            'transform',
+            'scale-95'
+          );
+        } else {
+          gameOverMessage.classList.remove(
+            'opacity-0',
+            'pointer-events-none',
+            'transform',
+            'scale-95'
+          );
+        }
+      }
+
+      function checkWinCondition() {
+        if (exit && player.x === exit.x && player.y === exit.y) {
+          stopGame(true);
+        }
+      }
+
+      function checkGameOver() {
+        if (player.x === monster.x && player.y === monster.y) {
+          stopGame(false);
+        }
+      }
+
+      // --- 事件监听 ---
+      startButton.addEventListener('click', startGame);
+      window.addEventListener('keydown', handleKeyPress);
+      restartButtonWin.addEventListener('click', init);
+      restartButtonGameOver.addEventListener('click', init);
+      window.addEventListener('resize', init);
+
+      // --- 游戏启动 ---
+      init();
     </script>
-</body>
+  </body>
 </html>
